@@ -143,6 +143,54 @@ class Collection implements ArrayAccess, Enumerable
     }
 
     /**
+     * Get the percentil of a given key.
+     *
+     * @param  float $p 
+     * @param  string|array|null  $key
+     * @return mixed
+     */
+    public function percentil(Float $p, $key = null) {
+        if($p === 0.5) return $this->median($key);
+
+        $values = (isset($key) ? $this->pluck($key) : $this)
+            ->filter(function ($item) {
+                return ! is_null($item);
+            })->sort()->values();
+
+        $count = $values->count();
+
+        if ($count === 0) {
+            return;
+        }
+        
+        return $values->get(((int) floor( ($count - 1) * $p)));
+    }
+
+     /**
+     * Get the standard deviation of a given key.
+     *
+     * @param  string|array|null  $key
+     * @return mixed
+     */
+    public function stdv($key = null) {
+        $values = (isset($key) ? $this->pluck($key) : $this)
+            ->filter(function ($item) {
+                return ! is_null($item);
+            });
+
+        $count = $values->count();
+
+        if($count === 0) {
+            return;
+        }
+
+        return sqrt($values->reduce(function ($carry, $item) {
+            return $carry + pow($item - $this->avg(), 2);
+        }) / $count);        
+    }
+
+
+    /**
      * Collapse the collection of items into a single array.
      *
      * @return static
